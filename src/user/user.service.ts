@@ -29,10 +29,15 @@ export class UserService {
     }
 
 
-    async updateUser(id:number,user:User):Promise<void>{
+    async updateUser(id:number,user:User):Promise<User>{
         // const updatedResult= await this.userRepository.update(id,user);
-        const user = await this.userRepository.findOne(id);
-
+        const userUpdted = await this.userRepository.findOneBy(id);
+            if(!userUpdted){
+                throw new NotFoundException("user with id ${id} not exisit")
+            }
+            Object.assign(userUpdted,user);
+            await this.userRepository.save(user);
+            return userUpdted;
         // console.log(updatedResult)
         // if(updatedResult.affected==0){
         //     throw new NotFoundException(`User With id ${id} not exisist`);
@@ -45,7 +50,6 @@ export class UserService {
         const deletedResults=await this.userRepository.delete(id);
         if(deletedResults.affected==0){
             throw new NotFoundException(`User with id${id} not found`);
-           
         }
        
     }
