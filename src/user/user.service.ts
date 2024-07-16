@@ -1,56 +1,88 @@
-import { User } from './../entities/user.entity';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import {  Repository } from 'typeorm';
+import * as bcrypt from 'bcryptjs';
+import { GlobalService } from '../global/global.service';
+import { User } from 'src/entities/user.entity';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+
+
+
 
 @Injectable()
-export class UserService {
-    constructor( @InjectRepository(User)private userRepository:Repository<User>){
-       
-    }
+export class UsersService {
+    constructor(
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>,
+        private readonly globalService: GlobalService,
+      //  @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger
+       // private readonly jwtService: JwtService, // Inject JwtService for token operations
+      ) {
+        this.globalService.getGlobalInfo();
+     //   this.logger.log("info","getting user data")
+      }
 
-    findAll():Promise<User[]>{
-       try{
-        const allData=this.userRepository.find();
-       return allData;
-       }catch(err){
-            throw new Error(err)
-       }
-    }
+  findAll(): Promise<User[]> {
+    const user=this.userRepository.find();
+    return this.userRepository.find();
+  }
 
+  findById(id: number): Promise<User> {
+    return this.userRepository.findOneById(id);
+  }
+
+  async findByEmail(email: string): Promise<User> {
+    return await this.userRepository.findOne({ where: { email } });
+  }
+
+  async createUser(user:CreateUserDto): Promise<any> {
+   try{
+    // const users=this.userRepository.save(user);
+    user.password=await bcrypt.hash(user.password,10);
     
-    findById(id:number):Promise<User>{
-      return  this.userRepository.findOneById(id);
-     }
+    return this.userRepository.save(user);
+   }catch(err){
+    console.log(err);
+    throw new Error(err.message)
+   }
+  }
 
-
-    createUser(user:User):Promise<User>{
-        return this.userRepository.save(user);
+  async updateUser(id: number, user: UpdateUserDto): Promise<UpdateUserDto> {
+    const existingUser = await this.userRepository.findOne({where:{id}});
+    console.log("existinguser",existingUser)
+    if (!existingUser) {
+      throw new NotFoundException(`User with ID ${id} not found`);
     }
-
-
-    async updateUser(id:number,user:User):Promise<User>{
-        // const updatedResult= await this.userRepository.update(id,user);
-        const userUpdted = await this.userRepository.findOneBy(id);
-            if(!userUpdted){
-                throw new NotFoundException("user with id ${id} not exisit")
-            }
-            Object.assign(userUpdted,user);
-            await this.userRepository.save(user);
-            return userUpdted;
-        // console.log(updatedResult)
-        // if(updatedResult.affected==0){
-        //     throw new NotFoundException(`User With id ${id} not exisist`);
-        // }
-        
-       
+    if(user.password){
+      user.password=await bcrypt.hash(user.password,10);
     }
+     //Object.assign(user,existingUser);
+     this.userRepository.update(id,user);
+     return user;
+  }
 
-   async remove(id:number):Promise<void>{
-        const deletedResults=await this.userRepository.delete(id);
-        if(deletedResults.affected==0){
-            throw new NotFoundException(`User with id${id} not found`);
-        }
-       
+  async remove(id: number): Promise<User> {
+    const existingUser = await this.userRepository.findOne({where:{id}});
+    console.log("existing user",existingUser);
+    if (!existingUser) {
+      throw new NotFoundException(`User with ID ${id} not found`);
     }
+    const result = await this.userRepository.delete(id);
+    console.log(result);
+    return existingUser;
+  }
+
+  // async validateUser(email: string, password: string): Promise<User> {
+  //   const user = await this.userRepository.findOne({ where: { email } });
+  //   if (user && await bcrypt.compare(password, user.password)) {
+  //     return user;
+  //   }
+  //   throw new UnauthorizedException('Invalid credentials');
+  // }
+
+  // async generateJwtToken(user: User): Promise<string> {
+  //   const payload = { email: user.email, sub: user.id };
+  //   return this.jwtService.sign(payload);
+  // }
 }

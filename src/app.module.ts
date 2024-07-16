@@ -4,20 +4,38 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { User } from './entities/user.entity';
+import { GlobalModule } from './global/global.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
+import { WinstonModule } from 'nest-winston';
+import { winstonConfig } from './auth/logger/logger';
+import { UsersModule } from './users/users.module';
+
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type:"postgres",
-      host:"localhost",
-      port:5432,
-      username:"postgres",
-      password:"root",
-      database:"areeb",
-      synchronize:true,
-      entities:[User]
-
+    ConfigModule.forRoot({
+      isGlobal:true
+    })
+    ,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get<string>('DATABASE_HOST'),
+        port: configService.get<number>('DATABASE_PORT'),
+        username: configService.get<string>('DATABASE_USER'),
+        password: configService.get<string>('DATABASE_PASSWORD'),
+        database: configService.get<string>('DATABASE_NAME'),
+        synchronize: true,
+      entities:[User],
     }),
-    UserModule
+    inject: [ConfigService],
+    }),
+    WinstonModule.forRoot(winstonConfig),
+    UserModule,
+    GlobalModule,
+    AuthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
