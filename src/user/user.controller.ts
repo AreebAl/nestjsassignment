@@ -12,7 +12,7 @@ import { LoggingInterceptor } from 'src/auth/interceptor/logging.interceptor';
 import {  WINSTON_MODULE_NEST_PROVIDER, WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 @UseGuards(AuthGuard, RolesGuard)
-//@UseInterceptors(LoggingInterceptor)
+@UseInterceptors(LoggingInterceptor)
 @Controller('user')
 export class UserController {
 
@@ -66,6 +66,7 @@ export class UserController {
   @Post()
   async create(@Body() user: CreateUserDto): Promise<ResponseDto<User>> {
     try {
+      console.log(user);
       const newUser = await this.userService.createUser(user);
       return {
         success: true,
@@ -107,7 +108,7 @@ export class UserController {
   async deleteUser(@Param('id') id): Promise<any> {
 
     try {
-      const deletedUser = this.userService.remove(id);
+      const deletedUser =await this.userService.remove(id);
       return {
         success: true,
         message: `User with ID ${id} deleted successfully`,

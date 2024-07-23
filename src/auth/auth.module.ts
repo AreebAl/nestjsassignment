@@ -17,7 +17,7 @@ import { LocalStrategy } from './strategies/local.strategy';
     JwtModule.registerAsync({
       imports: [ConfigModule], 
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'), 
+        secret: configService.get<string>('SECRET'), 
         signOptions: { expiresIn: '10D' }, 
       }),
       inject: [ConfigService], 
@@ -25,7 +25,11 @@ import { LocalStrategy } from './strategies/local.strategy';
     UserModule, 
     PassportModule,
   ],
-  providers: [AuthService, JwtStrategy,LocalStrategy], 
+  providers: [AuthService,JwtStrategy,ConfigService], 
   controllers: [AuthController],
 })
-export class AuthModule {}
+export class AuthModule {
+  constructor(){
+    console.log(process.env.JWT_SECRET,"from auth module")
+  }
+}

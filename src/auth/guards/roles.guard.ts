@@ -1,5 +1,6 @@
 // src/auth/guards/roles.guard.ts
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Observable } from 'rxjs';
@@ -12,7 +13,10 @@ export class RolesGuard implements CanActivate {
     private reflector: Reflector,
     private jwtService: JwtService,
     private userService: UsersService,
-  ) {}
+    private readonly configService:ConfigService
+  ) {
+    console.log(process.env.SECRET)
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const roles = this.reflector.get<Role[]>('roles', context.getHandler());
@@ -26,7 +30,7 @@ export class RolesGuard implements CanActivate {
     }
     try {
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET,
+        secret:this.configService.get<string>('SECRET'),
       });
       request.user = payload;
       console.log(payload,"payload");

@@ -28,6 +28,6 @@ export class CreateUserDto {
   updatedAt:Date
   
   @IsEnum(Role, { each: true })
-  role: Role;
+  roles: Role;
 
 }

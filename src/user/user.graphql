@@ -1,0 +1,26 @@
+# src/user/user.graphql
+enum Role {
+  ADMIN
+  USER
+  CLIENT
+}
+
+type User {
+  id: Int!
+  name: String!
+  email: String!
+  roles: Role!  # Adjusted to match GraphQL enum
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Query {
+  getUsers: [User!]!
+  getUserById(id: Int!): User
+}
+
+type Mutation {
+  createUser(name: String!, email: String!, password: String!, roles: Role!): User!
+  updateUser(id: Int!, name: String!, email: String!, password: String!, roles: Role!): User!
+  deleteUser(id: Int!): Boolean!
+}

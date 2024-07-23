@@ -6,6 +6,8 @@ import { GlobalService } from '../global/global.service';
 import { User } from 'src/entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserInput } from './dto/update-user.input';
+import { CreateUserInput } from './dto/create-user.input';
 
 
 
@@ -36,11 +38,11 @@ export class UsersService {
     return await this.userRepository.findOne({ where: { email } });
   }
 
-  async createUser(user:CreateUserDto): Promise<any> {
+  async createUser(user:CreateUserDto | CreateUserInput): Promise<any> {
    try{
     // const users=this.userRepository.save(user);
     user.password=await bcrypt.hash(user.password,10);
-    
+    console.log(user,"from service user")
     return this.userRepository.save(user);
    }catch(err){
     console.log(err);
@@ -48,7 +50,7 @@ export class UsersService {
    }
   }
 
-  async updateUser(id: number, user: UpdateUserDto): Promise<UpdateUserDto> {
+  async updateUser(id: number, user: UpdateUserDto | UpdateUserInput): Promise<UpdateUserDto> {
     const existingUser = await this.userRepository.findOne({where:{id}});
     console.log("existinguser",existingUser)
     if (!existingUser) {

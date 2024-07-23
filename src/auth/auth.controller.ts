@@ -18,11 +18,15 @@ export class AuthController {
  // @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Body() userBody:LoginDto) {
-    const { email, password } = userBody
-    //const user = await this.userService.validateUser(email, password);
-    const user=await this.authService.validateUser(email,password);
-    const accessToken = await this.authService.generateJwtToken(user);
-    return {user:user,token: accessToken };
+    try{
+      const { email, password } = userBody
+      //const user = await this.userService.validateUser(email, password);
+      const user=await this.authService.validateUser(email,password);
+      const accessToken = await this.authService.generateJwtToken(user);
+      return {user:user,token: accessToken };
+    }catch(err){
+        return {success:false,message:err.message};
+    }
   }
 
   

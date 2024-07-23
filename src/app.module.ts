@@ -2,21 +2,30 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserModule } from './user/user.module';
 import { User } from './entities/user.entity';
 import { GlobalModule } from './global/global.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { WinstonModule } from 'nest-winston';
 import { winstonConfig } from './auth/logger/logger';
-import { UsersModule } from './users/users.module';
+import { UserModule } from './user/user.module';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriverConfig, ApolloDriver } from '@nestjs/apollo';
+import { join } from 'path';
+import { LoggingInterceptor } from './auth/interceptor/logging.interceptor';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal:true
-    })
-    ,
+      isGlobal: true,
+    }),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      playground: false,
+      typePaths: ['./**/*.graphql'],
+      // transformSchema: schema => upperDirectiveTransformer(schema, 'upper'),
+      installSubscriptionHandlers: true,
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -27,21 +36,21 @@ import { UsersModule } from './users/users.module';
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
         synchronize: true,
-      entities:[User],
-    }),
-    inject: [ConfigService],
+        entities: [User],
+      }),
+      inject: [ConfigService],
     }),
     WinstonModule.forRoot(winstonConfig),
     UserModule,
     GlobalModule,
     AuthModule,
-    UsersModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,LoggingInterceptor],
 })
 export class AppModule {
-  constructor(){
+  constructor() {
     console.log("connected to db");
+    console.log(join(process.cwd(), 'src/user/user.graphql'));
   }
 }
