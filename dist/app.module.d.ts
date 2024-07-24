@@ -1,3 +1,5 @@
+import { ConfigService } from '@nestjs/config';
 export declare class AppModule {
-    constructor();
+    private readonly configService;
+    constructor(configService: ConfigService);
 }

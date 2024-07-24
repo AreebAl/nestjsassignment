@@ -26,9 +26,14 @@ const apollo_1 = require("@nestjs/apollo");
 const path_1 = require("path");
 const logging_interceptor_1 = require("./auth/interceptor/logging.interceptor");
 let AppModule = class AppModule {
-    constructor() {
+    constructor(configService) {
+        this.configService = configService;
         console.log("connected to db");
         console.log((0, path_1.join)(process.cwd(), 'src/user/user.graphql'));
+        console.log(this.configService.get('DATABASE_HOST'));
+        console.log(this.configService.get('DATABASE_PORT'));
+        console.log(this.configService.get('DATABASE_USER'));
+        console.log(this.configService.get('DATABASE_PASSWORD'));
     }
 };
 exports.AppModule = AppModule;
@@ -55,6 +60,9 @@ exports.AppModule = AppModule = __decorate([
                     database: configService.get('DATABASE_NAME'),
                     synchronize: true,
                     entities: [user_entity_1.User],
+                    ssl: {
+                        rejectUnauthorized: false,
+                    },
                 }),
                 inject: [config_1.ConfigService],
             }),
@@ -66,6 +74,6 @@ exports.AppModule = AppModule = __decorate([
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService, logging_interceptor_1.LoggingInterceptor],
     }),
-    __metadata("design:paramtypes", [])
+    __metadata("design:paramtypes", [config_1.ConfigService])
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

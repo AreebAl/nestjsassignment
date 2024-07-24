@@ -37,6 +37,9 @@ import { LoggingInterceptor } from './auth/interceptor/logging.interceptor';
         database: configService.get<string>('DATABASE_NAME'),
         synchronize: true,
         entities: [User],
+        ssl: {
+          rejectUnauthorized: false,
+        },
       }),
       inject: [ConfigService],
     }),
@@ -49,8 +52,13 @@ import { LoggingInterceptor } from './auth/interceptor/logging.interceptor';
   providers: [AppService,LoggingInterceptor],
 })
 export class AppModule {
-  constructor() {
+  constructor(private readonly configService:ConfigService) {
     console.log("connected to db");
     console.log(join(process.cwd(), 'src/user/user.graphql'));
+    console.log(this.configService.get<string>('DATABASE_HOST'))
+    console.log(this.configService.get<string>('DATABASE_PORT'))
+    console.log(this.configService.get<string>('DATABASE_USER'))
+    console.log(this.configService.get<string>('DATABASE_PASSWORD'))
+
   }
 }
